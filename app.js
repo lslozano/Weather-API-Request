@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const https = require("https");
 const bodyParser = require("body-parser");
@@ -6,7 +7,7 @@ const app = express();
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-const port = 3000;
+const PORT = process.env.PORT;
 const index = "/index.html";
 
 app.get("/", (req, res) => {
@@ -15,7 +16,7 @@ app.get("/", (req, res) => {
 
 app.post("/", (req, res) => {
   const query = req.body.cityName;
-  const appKey = "67103b8742cd33a1fe4888957291e1c5";
+  const appKey = process.env.WEATHERMAP_KEY;
   const unit = "metric";
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=${appKey}&units=${unit}`;
   
@@ -23,6 +24,7 @@ app.post("/", (req, res) => {
     console.log(response.statusCode);
   
     response.on("data", (data) => {
+      console.log(JSON.parse(data));
       const weatherData = JSON.parse(data);
       const temp = weatherData.main.temp;
       const weatherDescription = weatherData.weather[0].description;
@@ -37,5 +39,5 @@ app.post("/", (req, res) => {
   })
 })
 
-app.listen(port, () => console.log(`Server running on Port ${port}`));
+app.listen(PORT, () => console.log(`Server running on Port ${PORT}`));
 

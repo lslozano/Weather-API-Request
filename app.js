@@ -1,8 +1,41 @@
 const express = require("express");
-const app = express();
-const port = 3000;
-const index = "/index.html"
+const https = require("https");
+const bodyParser = require("body-parser");
 
-app.get("/", (req, res) => res.sendFile(`${__dirname}${index}`));
+const app = express();
+
+app.use(bodyParser.urlencoded({extended: true}));
+
+const port = 3000;
+const index = "/index.html";
+
+app.get("/", (req, res) => {
+  res.sendFile(`${__dirname}${index}`);
+});
+
+app.post("/", (req, res) => {
+  const query = req.body.cityName;
+  const appKey = "67103b8742cd33a1fe4888957291e1c5";
+  const unit = "metric";
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=${appKey}&units=${unit}`;
+  
+  https.get(url, (response) => {
+    console.log(response.statusCode);
+  
+    response.on("data", (data) => {
+      const weatherData = JSON.parse(data);
+      const temp = weatherData.main.temp;
+      const weatherDescription = weatherData.weather[0].description;
+      const icon = weatherData.weather[0].icon;
+      const imageURL = `http://openweathermap.org/img/wn/${icon}@2x.png`;
+  
+      res.write(`<h1>The weather is currently ${weatherDescription}.</h1>`);
+      res.write(`<p>The temperature in ${query} is ${temp} degrees Celcius.</p>`);
+      res.write(`<img src=${imageURL} alt=weather-icon>`);
+      res.send()
+    })
+  })
+})
 
 app.listen(port, () => console.log(`Server running on Port ${port}`));
+
